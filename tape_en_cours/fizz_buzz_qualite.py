@@ -31,4 +31,4 @@ def fizz_buzz() -> str:
 
 
 for nombre in range(1, 16):
-    print(fizz_buzz(nombre))
+    print(fizz_buzz())
