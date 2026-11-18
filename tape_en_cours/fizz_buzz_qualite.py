@@ -21,6 +21,7 @@ def est_divisible_par(dessus: int, dessous: int) -> bool:
 def fizz_buzz(nombre) -> str:
     """Renvoie le résultat du jeu Fizz Buzz pour un élément donné."""
     resultat = ""
+    nombre = 2
     if est_divisible_par(nombre, 3):
         resultat += "fizz"
     if est_divisible_par(nombre, 5):
