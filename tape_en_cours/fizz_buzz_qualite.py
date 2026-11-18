@@ -18,7 +18,7 @@ def est_divisible_par(dessus: int, dessous: int) -> bool:
     return not dessus % dessous
 
 
-def fizz_buzz(nombre: int) -> str:
+def fizz_buzz() -> str:
     resultat = ""
     if est_divisible_par(nombre, 3):
         resultat += "fizz"
