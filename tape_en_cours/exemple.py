@@ -1,6 +1,6 @@
 """toto"""
 
-A: int = 1
+A = 1
 print(A)
 print("a")
 print(A * 3)
