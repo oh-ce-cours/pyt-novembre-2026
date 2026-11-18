@@ -15,7 +15,7 @@ def est_divisible_par(dessus: int, dessous: int) -> bool:
     Returns:
         bool: si le nombre est divisible ou pas.
     """
-    return dessus % dessous == 0
+    return not dessus % dessous
 
 
 for nombre in range(1, 16):
