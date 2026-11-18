@@ -27,6 +27,8 @@ def fizz_buzz(nombre: int) -> str:
     if not resultat:
         resultat = str(nombre)
 
+    return resultat
+
 
 for nombre in range(1, 16):
-    print(resultat)
+    print(fizz_buzz(nombre))
