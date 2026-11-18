@@ -7,3 +7,5 @@ print(A * 3)
 
 A = "1"
 print(A)
+
+print("coucou")
