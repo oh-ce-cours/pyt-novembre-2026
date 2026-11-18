@@ -9,5 +9,3 @@ A = "1"
 print(A)
 
 print("coucou")
-
-"1"
