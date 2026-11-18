@@ -1,3 +1,4 @@
+# noqa: C0116
 from fizz_buzz_qualite import est_divisible_par
 
 
