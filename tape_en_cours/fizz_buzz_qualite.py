@@ -18,14 +18,15 @@ def est_divisible_par(dessus: int, dessous: int) -> bool:
     return not dessus % dessous
 
 
-def fizz_buzz(element) -> str:
+def fizz_buzz(nombre) -> str:
+    """Renvoie le résultat du jeu Fizz Buzz pour un élément donné."""
     resultat = ""
-    if est_divisible_par(element, 3):
+    if est_divisible_par(nombre, 3):
         resultat += "fizz"
-    if est_divisible_par(element, 5):
+    if est_divisible_par(nombre, 5):
         resultat += "buzz"
     if not resultat:
-        resultat = str(element)
+        resultat = str(nombre)
 
     return resultat
 
