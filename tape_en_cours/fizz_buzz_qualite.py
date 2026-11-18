@@ -1,5 +1,13 @@
 def est_divisible_par(dessus: int, dessous: int) -> bool:
-    """ """
+    """Regarde si un nombre est divisible par un autre.
+
+    Args:
+        dessus (int): _description_
+        dessous (int): _description_
+
+    Returns:
+        bool: _description_
+    """
     return dessus % dessous == 0
 
 
