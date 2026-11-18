@@ -1,3 +1,8 @@
+"""
+Fonctions utilitaires pour le jeu Fizz Buzz.
+"""
+
+
 def est_divisible_par(dessus: int, dessous: int) -> bool:
     """Regarde si un nombre est divisible par un autre.
 
