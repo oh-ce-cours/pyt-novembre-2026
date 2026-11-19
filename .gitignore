@@ -1,3 +1,8 @@
 .DS_Store
 .ipynb_checkpoints/
 __pycache__/
+
+# fichiers produits par les TP
+notebooks/devis_enrichis.*
+notebooks/devis_par_produit/
+notebooks/synthese_devis.*
