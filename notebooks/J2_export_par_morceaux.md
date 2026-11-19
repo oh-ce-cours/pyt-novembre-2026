@@ -122,15 +122,79 @@ df = pd.read_parquet("contrats.parquet", columns=["produit", "prime_annuelle"],
                      filters=[("statut", "==", "ACTIF")])                  # seulement l'utile
 ```
 
+## Pourquoi le Parquet est plus petit
+
+Mesuré sur 1 million de contrats (données générées, valeurs toutes différentes : pas de lignes copiées
+qui gonfleraient artificiellement la compression) :
+
+| fichier | taille |
+|---|---|
+| DataFrame en mémoire | 352 Mo |
+| CSV | 69,8 Mo |
+| Parquet (compression par défaut, `snappy`) | 20,6 Mo, **3,4 fois plus petit** |
+| Parquet `compression="zstd"` | 14,3 Mo, **4,9 fois plus petit** |
+
+Taille de chaque colonne dans les deux formats :
+
+| colonne | exemple de valeur | CSV | Parquet | pourquoi |
+|---|---|---|---|---|
+| `produit` | `HABITATION` | 8,0 Mo | 0,25 Mo | 4 valeurs possibles : stockées une fois, puis un petit numéro par ligne (dictionnaire) |
+| `statut` | `ACTIF` | 6,7 Mo | 0,26 Mo | idem, 3 valeurs |
+| `agence` | `AG-10042` | 9,0 Mo | 1,0 Mo | idem, 250 valeurs |
+| `date_effet` | `2015-04-04` | 11,0 Mo | 1,7 Mo | en CSV, 10 caractères ; en Parquet, un nombre (jours depuis 1970) |
+| `date_resiliation` | vide à 70 % | 4,0 Mo | 0,8 Mo | les valeurs vides ne coûtent presque rien |
+| `prime_annuelle` | `841,76` | 7,1 Mo | 4,4 Mo | un nombre binaire de 8 octets, compressé ; gain modeste, les valeurs sont toutes différentes |
+| `id_client` | `C012345` | 8,0 Mo | 6,0 Mo | presque toutes différentes : peu de gain |
+| `num_contrat` | `AUT-2015-000007` | 16,0 Mo | 6,2 Mo | toutes différentes, mais début répétitif (`AUT-2015-`) : la compression le repère |
+
+Les trois raisons :
+
+1. **CSV = du texte, ligne par ligne.** Chaque valeur est réécrite en caractères à chaque ligne :
+   « HABITATION » est écrit des centaines de milliers de fois, une date prend 10 caractères.
+2. **Parquet = colonne par colonne, en binaire.** Les valeurs d'une même colonne sont rangées ensemble
+   et dans leur vrai type (date, nombre) : les valeurs répétées sont remplacées par un numéro
+   (dictionnaire), les suites identiques sont résumées (« 500 fois ACTIF »).
+3. **Puis chaque colonne est compressée** (`snappy` par défaut, `zstd` plus fort et aussi rapide ici).
+
+Règle pratique : le gain est **énorme sur les colonnes à peu de valeurs** (produit, statut, agence,
+codes) et sur les dates, **faible sur les identifiants et les montants**, qui sont tous différents.
+Une table « métier » typique gagne 3 à 5 fois. (Sur une table où des lignes se répètent, le gain
+peut dépasser 10 fois.)
+
+## Stats d'usage : écrire et relire
+
+Même million de lignes, Python 3.11, pandas 2.3, pyarrow :
+
+| opération | CSV | Parquet |
+|---|---|---|
+| écrire le fichier (`to_csv` / `to_parquet`) | 1,7 s | **0,3 s** |
+| relire tout (`read_csv` / `read_parquet`) | 0,75 s | **0,25 s** |
+| pic de mémoire pendant la relecture complète | + 460 Mo | + 420 Mo |
+| relire 2 colonnes (`usecols=` / `columns=`) | 0,18 s | **0,04 s** |
+| pic de mémoire pour 2 colonnes | + 64 Mo | + 56 Mo |
+| dates relues comme dates | seulement avec `parse_dates=[...]` | **oui, automatiquement** |
+| nombres à virgule française | seulement avec `decimal=","` | **rien à préciser** |
+
+À retenir :
+
+- la mémoire après relecture est **la même** dans les deux cas : c'est la taille du DataFrame,
+  pas celle du fichier, qui compte ;
+- pour économiser la mémoire, on lit **moins de colonnes** (`usecols=` en CSV, `columns=` en Parquet) :
+  ici 7 fois moins de mémoire ;
+- Parquet est 3 à 5 fois plus rapide à écrire et à relire, et **n'a besoin d'aucun paramètre**
+  (séparateur, décimale, encodage, dates) : le fichier connaît ses types ;
+- le temps le plus long reste celui de la base vers Python (18 s pour 3,2 M lignes, voir plus haut) :
+  c'est pour ça qu'on extrait **une fois** et qu'on relit le fichier ensuite.
+
 ## CSV ou Parquet ?
 
 | | CSV | Parquet |
 |---|---|---|
 | s'ouvre dans Excel | oui | non |
 | types à la relecture | tout redevient texte (dates à reconvertir) | conservés (dates, nombres) |
-| taille | grosse | 5 à 10 fois plus petite (compressé, par colonnes) |
-| relecture de 3,2 M lignes | plusieurs secondes | 0,05 à 2 s |
-| lire seulement quelques colonnes | non, tout le fichier est lu | oui (`columns=`, `filters=`) |
+| taille | grosse | 3 à 5 fois plus petite (voir plus haut) |
+| vitesse d'écriture et de relecture | correcte | 3 à 5 fois plus rapide |
+| lire seulement quelques colonnes | oui (`usecols=`), mais tout le fichier est parcouru | oui (`columns=`, `filters=`), seules ces colonnes sont lues sur le disque |
 
 En résumé : **CSV pour échanger** (Excel, autre outil), **Parquet pour retravailler en Python**.
 C'est l'équivalent d'une table copiée dans une bibliothèque SAS permanente : on interroge la base
