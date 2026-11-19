@@ -6,3 +6,6 @@ __pycache__/
 notebooks/devis_enrichis.*
 notebooks/devis_par_produit/
 notebooks/synthese_devis.*
+
+# corrections : visibles en local seulement, pas publiées
+corrections/
