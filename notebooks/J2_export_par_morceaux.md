@@ -28,13 +28,12 @@ sql = "SELECT * FROM mon_schema.contrats"
 # conn : la connexion à la base (vertica_python, sqlite3…)
 ```
 
-Avec **VerticaPy**, on construit la requête avec le vDataFrame, puis on la lit avec pandas
-sur la même connexion (`to_pandas()` ramène tout d'un coup, sans morceaux) :
+**Ou, avec VerticaPy** (à la place du bloc précédent), on construit la requête avec le vDataFrame,
+puis on la lit avec pandas sur la même connexion (`to_pandas()` ramène tout d'un coup, sans morceaux) :
 
 ```python
 v = vp.vDataFrame("mon_schema.contrats")
-v.filter("statut = 'ACTIF'")
-v = v.select(["num_contrat", "produit", "prime_annuelle"])
+v.filter("statut = 'ACTIF'")                      # écrit en SQL, exécuté par Vertica
 
 sql = f"SELECT * FROM {v.current_relation()}"     # le SQL construit par VerticaPy
 conn = vp.current_cursor().connection             # la connexion ouverte par VerticaPy
@@ -92,7 +91,8 @@ def ajouter_parquet(morceau, ecrivain):
 
 
 def typer(morceau):
-    """Mêmes types dans tous les morceaux (à adapter aux colonnes de la requête)."""
+    """Mêmes types dans tous les morceaux.
+    À adapter : une ligne par colonne de date ou de nombre présente dans la requête."""
     morceau["date_effet"] = pd.to_datetime(morceau["date_effet"])
     morceau["date_resiliation"] = pd.to_datetime(morceau["date_resiliation"])
     morceau["prime_annuelle"] = morceau["prime_annuelle"].astype("float64")
