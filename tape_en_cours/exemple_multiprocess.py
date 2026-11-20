@@ -1,7 +1,9 @@
 from multiprocessing import Pool
+import time
 
 
-def f(x):
+def traitement(x):
+    time.sleep(1)  # Simulate some work
     return x * x
 
 
