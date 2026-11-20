@@ -3,7 +3,8 @@ import time
 
 
 def traitement(x):
-    time.sleep(10)  # Simulate some work
+    time.sleep(1)
+    print(x)  # Simulate some work
     return x * x
 
 
