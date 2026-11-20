@@ -9,5 +9,5 @@ def traitement(x):
 
 
 if __name__ == "__main__":
-    with Pool(5) as p:
+    with Pool(1) as p:
         print(p.map(traitement, range(20)))
